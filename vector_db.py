@@ -20,13 +20,20 @@ class QdrantStorage:
 
         self.client.upsert(self.collection, points=points)
 
+    # Inside vector_db.py
+
     def search(self, query_vector, top_k: int = 5):
-        results = self.client.search(
+        # Use query_points instead of search
+        response = self.client.query_points(
             collection_name=self.collection,
-            query_vector=query_vector,
+            query=query_vector,  # In the new API, 'query' accepts the vector directly
             with_payload=True,
             limit=top_k,
         )
+
+        # The results are now inside a 'points' attribute
+        results = response.points
+
         contexts = []
         sources = set()
 

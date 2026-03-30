@@ -2,14 +2,12 @@ import datetime
 import logging
 import os
 import uuid
-from encodings.punycode import adapt
 
 import inngest
 import inngest.fast_api
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from inngest.experimental import ai
-from inngest.experimental.mocked import trigger
 
 from custom_types import (
     RAGChunkAndSrc,
@@ -30,12 +28,17 @@ inngest_client = inngest.Inngest(
 )
 
 
-# Invoking inngest
-# # This function is "event-driven"—it won't run until the event "rag/ingest_pdf" is received
 @inngest_client.create_function(
-    fn_id="RAG: Inngest PDf", trigger=inngest.TriggerEvent(event="rag/ingest_pdf")
+    fn_id="RAG: Ingest PDF",
+    trigger=inngest.TriggerEvent(event="rag/ingest_pdf"),
+    throttle=inngest.Throttle(limit=2, period=datetime.timedelta(minutes=1)),
+    rate_limit=inngest.RateLimit(
+        limit=1,
+        period=datetime.timedelta(hours=4),
+        key="event.data.source_id",
+    ),
 )
-async def rag_inngest_pdf(ctx: inngest.Context):
+async def rag_ingest_pdf(ctx: inngest.Context):
     def _load(ctx: inngest.Context) -> RAGChunkAndSrc:
         pdf_path = ctx.event.data["pdf_path"]
         source_id = ctx.event.data.get("source_id", pdf_path)
@@ -66,7 +69,7 @@ async def rag_inngest_pdf(ctx: inngest.Context):
 
 
 @inngest_client.create_function(
-    fn_id="RAG: Query PDf", trigger=inngest.TriggerEvent(event="rag/query_pdf_ai")
+    fn_id="RAG: Query PDF", trigger=inngest.TriggerEvent(event="rag/query_pdf_ai")
 )
 async def rag_query_pdf_ai(ctx: inngest.Context):
     def _search(question: str, top_k: int = 5) -> RAGSearchResult:
@@ -100,7 +103,7 @@ async def rag_query_pdf_ai(ctx: inngest.Context):
         "llm-answer",
         adapter=adapter,
         body={
-            "max-tokens": 1024,
+            "max_tokens": 1024,
             "temperature": 0.2,
             "messages": [
                 {
@@ -112,7 +115,7 @@ async def rag_query_pdf_ai(ctx: inngest.Context):
         },
     )
 
-    answer = res["choices"][0]["messages"]["content"].strip()
+    answer = res["choices"][0]["message"]["content"].strip()
     return {
         "answer": answer,
         "sources": found.sources,
@@ -122,5 +125,4 @@ async def rag_query_pdf_ai(ctx: inngest.Context):
 
 app = FastAPI()
 
-# This creates a POST route  (/api/inngest) that Inngest uses to communicate with your app
-inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf, rag_query_pdf_ai])
+inngest.fast_api.serve(app, inngest_client, [rag_ingest_pdf, rag_query_pdf_ai])
