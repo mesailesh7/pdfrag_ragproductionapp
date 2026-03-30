@@ -20,6 +20,7 @@ inngest_client = inngest.Inngest(
 )
 
 
+# Invoking inngest
 @inngest_client.create_function(
     fn_id="RAG: Inngest PDf", trigger=inngest.TriggerEvent(event="rag/ingest_pdf")
 )
