@@ -14,3 +14,7 @@ docker run -d --name qdrant -p 6333:6333 -v "$(pwd)/qdrant_storage:/qdrant/stora
 docker run -d --name qdrant -p 6333:6333 -v "./qdrant_storage:/qdrant/storage" qdrant/qdrant
 
 docker run -d --name qdrantRagDb -p 6333:6333 -v "./qdrant_storage:/qdrant/storage" qdrant/qdrant
+
+
+//to run streamlig
+uv run streamlit run streamlit_app.py
