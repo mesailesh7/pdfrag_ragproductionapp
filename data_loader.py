@@ -6,7 +6,7 @@ from openai import OpenAI
 load_dotenv()
 
 client = OpenAI()
-EMBED_MODEL = "text_embedding-3-large"
+EMBED_MODEL = "text-embedding-3-large"
 # Make sure this number matches from the vector_db dim
 EMBED_DIM = 3072
 
