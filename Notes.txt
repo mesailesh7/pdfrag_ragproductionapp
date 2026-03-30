@@ -1,0 +1,16 @@
+uv init
+
+
+uv run uvicorn main:app
+
+npx inngest-cli@latest dev -u http://127.0.0.1:8000/api/inngest --no-discovery
+
+
+
+#To install qdrant from docker in windows
+docker run -d --name qdrant -p 6333:6333 -v "$(pwd)/qdrant_storage:/qdrant/storage" qdrant/qdrant
+
+# in mac or linux
+docker run -d --name qdrant -p 6333:6333 -v "./qdrant_storage:/qdrant/storage" qdrant/qdrant
+
+docker run -d --name qdrantRagDb -p 6333:6333 -v "./qdrant_storage:/qdrant/storage" qdrant/qdrant

@@ -21,6 +21,7 @@ inngest_client = inngest.Inngest(
 
 
 # Invoking inngest
+# # This function is "event-driven"—it won't run until the event "rag/ingest_pdf" is received
 @inngest_client.create_function(
     fn_id="RAG: Inngest PDf", trigger=inngest.TriggerEvent(event="rag/ingest_pdf")
 )
@@ -30,5 +31,5 @@ async def rag_inngest_pdf(ctx: inngest.Context):
 
 app = FastAPI()
 
-
-inngest.fast_api.serve(app, inngest_client, [])
+# This creates a POST route  (/api/inngest) that Inngest uses to communicate with your app
+inngest.fast_api.serve(app, inngest_client, [rag_inngest_pdf])
